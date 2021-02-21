@@ -1,0 +1,72 @@
+version: "3.8"
+
+services:
+  django:
+    build: .
+    container_name: django
+    command: python3 manage.py runserver 0.0.0.0:8080
+    volumes:
+      - .:/code
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - pgdb
+      - redis
+
+  django-make-migrations:
+    build: .
+    command: python3 manage.py makemigrations
+    depends_on:
+      - pgdb
+      - redis
+
+  django-migrate:
+    build: .
+    command: python3 manage.py migrate
+    depends_on:
+      - pgdb
+      - redis
+
+  celery:
+    build: .
+    command: celery -A crawler worker -l INFO
+    volumes:
+      - .:/code
+    depends_on:
+      - django
+      - redis
+
+  celery-beat:
+    build: .
+    command:  celery -A crawler beat -l INFO
+    volumes:
+    - .:/code
+    environment:
+      - DEBUG=1
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1
+      - CELERY_BROKER=redis://redis:6379/0
+      - CELERY_BACKEND=redis://redis:6379/0
+    depends_on:
+      - django
+      - redis
+
+  pgdb:
+    image: postgres
+    container_name: pgdb
+    environment:
+      - POSTGRES_DB=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data/
+
+  redis:
+    image: "redis:alpine"
+
+volumes:
+  pgdata:
