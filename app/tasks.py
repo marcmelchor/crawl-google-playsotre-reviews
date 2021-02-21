@@ -33,7 +33,7 @@ def crawl_app_reviews(app_id, **kwargs):
     )
 
     app_object = save_app(app_id)
-    app_reviews = get_new_reviews(app_reviews)
+    app_reviews = filter_new_reviews(app_reviews)
     save_app_reviews(app_reviews, app_object)
 
 
@@ -49,7 +49,7 @@ def crawl_all_app_reviews(app_id, **kwargs):
     )
 
     app_object = save_app(app_id)
-    app_reviews = get_new_reviews(app_reviews)
+    app_reviews = filter_new_reviews(app_reviews)
     save_app_reviews(app_reviews, app_object)
 
 
@@ -74,7 +74,7 @@ def save_app(android_app_id):
         return app_object
 
 
-def get_new_reviews(app_reviews):
+def filter_new_reviews(app_reviews):
     app_id_reviews = [android_reviews['reviewId'] for android_reviews in app_reviews]
     saved_reviews = list(Review.objects.filter(review_id__in=app_id_reviews).values_list('review_id', flat=True))
     app_id_reviews = list(set(app_id_reviews) - set(saved_reviews))
