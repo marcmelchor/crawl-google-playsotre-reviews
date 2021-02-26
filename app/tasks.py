@@ -9,8 +9,8 @@ from django.core.exceptions import ObjectDoesNotExist
 def import_app_info(app_id, **kwargs):
     response = app(
         app_id,
-        lang=fix_attribute(kwargs.get('lang'), 'en'),
-        country=fix_attribute(kwargs.get('country'), 'us'),
+        lang=kwargs.get('lang', 'en'),
+        country=kwargs.get('country', 'us'),
     )
 
     save_app(response['appId'])
@@ -20,11 +20,11 @@ def import_app_info(app_id, **kwargs):
 def crawl_app_reviews(app_id, **kwargs):
     result, continuation_token = reviews(
         app_id,
-        lang=fix_attribute(kwargs.get('lang'), 'en'),
-        country=fix_attribute(kwargs.get('country'), 'us'),
+        lang=kwargs.get('lang', 'en'),
+        country=kwargs.get('country', 'us'),
         sort=Sort.MOST_RELEVANT,
-        count=fix_attribute(kwargs.get('count'), 10),
-        filter_score_with=fix_attribute(kwargs.get('score'), 5),
+        count=kwargs.get('count', 10),
+        filter_score_with=kwargs.get('score', 5),
     )
 
     app_reviews, _ = reviews(
@@ -42,22 +42,15 @@ def crawl_all_app_reviews(app_id, **kwargs):
     app_reviews = reviews_all(
         app_id,
         sleep_milliseconds=0,
-        lang=fix_attribute(kwargs.get('lang'), 'en'),
-        country=fix_attribute(kwargs.get('country'), 'us'),
+        lang=kwargs.get('lang', 'en'),
+        country=kwargs.get('country', 'us'),
         sort=Sort.MOST_RELEVANT,
-        filter_score_with=fix_attribute(kwargs.get('score'), 5),
+        filter_score_with=kwargs.get('score', 5),
     )
 
     app_object = save_app(app_id)
     app_reviews = filter_new_reviews(app_reviews)
     save_app_reviews(app_reviews, app_object)
-
-
-def fix_attribute(attribute, default):
-    if attribute is not None:
-        return attribute
-
-    return default
 
 
 def save_app(android_app_id):
@@ -83,6 +76,7 @@ def filter_new_reviews(app_reviews):
 
 
 def save_app_reviews(app_reviews, app_object):
+    reviews_list = []
     for review in app_reviews:
         review_id = review['reviewId']
         app_review = Review(
@@ -96,7 +90,8 @@ def save_app_reviews(app_reviews, app_object):
             review_created_version=review['reviewCreatedVersion'],
             at=review['at'],
         )
+        reviews_list.append(app_review)
 
-        app_review.save()
+    App.objects.bulk_create(reviews_list)
 
-    print(f'{ len(app_reviews) } have been successfully saved.')
+    print(f'{ len(reviews_list) } have been successfully saved.')
