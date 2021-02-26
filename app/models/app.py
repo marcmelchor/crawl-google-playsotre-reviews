@@ -1,3 +1,4 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
 
@@ -9,3 +10,17 @@ class App(models.Model):
 
     def __unicode__(self):
         return '/%s/' % self.app_id
+
+    @classmethod
+    def save_app(cls, android_app_id):
+        try:
+            app_object = cls.objects.get(app_id=android_app_id)
+            print(f'The application {android_app_id} already exists.')
+
+            return app_object
+        except ObjectDoesNotExist:
+            android_app = cls(app_id=android_app_id)
+            app_object = android_app.save()
+            print(f'The application {android_app_id} has been saved.')
+
+            return app_object

@@ -4,7 +4,7 @@ from .app import App
 
 class Review(models.Model):
     app_id = models.ForeignKey(App, on_delete=models.CASCADE, blank=False, null=False)
-    review_id = models.CharField(max_length=250, unique=True)
+    review_id = models.CharField(max_length=250)
     user_name = models.CharField(max_length=250)
     user_image = models.CharField(max_length=250)
     content = models.TextField()

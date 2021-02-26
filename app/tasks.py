@@ -2,7 +2,6 @@ from __future__ import absolute_import, unicode_literals
 from celery import shared_task
 from google_play_scraper import app, Sort, reviews, reviews_all
 from .models import App, Review
-from django.core.exceptions import ObjectDoesNotExist
 
 
 @shared_task
@@ -13,7 +12,7 @@ def import_app_info(app_id, **kwargs):
         country=kwargs.get('country', 'us'),
     )
 
-    save_app(response['appId'])
+    App.save_app(response['appId'])
 
 
 @shared_task
@@ -32,7 +31,7 @@ def crawl_app_reviews(app_id, **kwargs):
         continuation_token=continuation_token,
     )
 
-    app_object = save_app(app_id)
+    app_object = App.save_app(app_id)
     app_reviews = filter_new_reviews(app_reviews)
     save_app_reviews(app_reviews, app_object)
 
@@ -48,23 +47,9 @@ def crawl_all_app_reviews(app_id, **kwargs):
         filter_score_with=kwargs.get('score', 5),
     )
 
-    app_object = save_app(app_id)
+    app_object = App.save_app(app_id)
     app_reviews = filter_new_reviews(app_reviews)
     save_app_reviews(app_reviews, app_object)
-
-
-def save_app(android_app_id):
-    try:
-        app_object = App.objects.get(app_id=android_app_id)
-        print(f'The application { android_app_id } already exists.')
-
-        return app_object
-    except ObjectDoesNotExist:
-        android_app = App(app_id=android_app_id)
-        app_object = android_app.save()
-        print(f'The application { android_app_id } has been saved.')
-
-        return app_object
 
 
 def filter_new_reviews(app_reviews):
