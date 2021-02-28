@@ -6,13 +6,15 @@ from .models import App, Review
 
 @shared_task
 def import_app_info(app_id, **kwargs):
-    response = app(
-        app_id,
-        lang=kwargs.get('lang', 'en'),
-        country=kwargs.get('country', 'us'),
-    )
+    already_exists = App.objects.app_already_exists(app_id)
+    if already_exists:
+        response = app(
+            app_id,
+            lang=kwargs.get('lang', 'en'),
+            country=kwargs.get('country', 'us'),
+        )
 
-    App.objects.save_app(response['appId'])
+        App.objects.save_app(response['appId'])
 
 
 @shared_task

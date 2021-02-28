@@ -15,6 +15,14 @@ class AppManager(models.Manager):
 
             return app_object
 
+    def app_already_exists(self, android_app_id):
+        try:
+            super().get(app_id=android_app_id)
+
+            return True
+        except ObjectDoesNotExist:
+            return False
+
 
 class App(models.Model):
     app_id = models.CharField(max_length=250, unique=True)

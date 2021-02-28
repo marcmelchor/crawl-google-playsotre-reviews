@@ -13,18 +13,20 @@ services:
       - pgdata:/var/lib/postgresql/data/
 
   django:
-    build: .
-    container_name: django
-    command: python3 manage.py runserver 0.0.0.0:8000
-    volumes:
-      - .:/code
+    build:
+      context: .
     ports:
       - "8000:8000"
+    volumes:
+      - .:/code
+    container_name: django
+    command: sh -c "python manage.py runserver 0.0.0.0:8000"
     environment:
       - DEBUG=1
       - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1
       - CELERY_BROKER=redis://redis:6379/0
       - CELERY_BACKEND=redis://redis:6379/0
+      - SECRET_KEY=aReallyNiceKey
     depends_on:
       - pgdb
       - redis
@@ -43,11 +45,6 @@ services:
     command:  celery -A crawler beat -l INFO
     volumes:
     - .:/code
-    environment:
-      - DEBUG=1
-      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1
-      - CELERY_BROKER=redis://redis:6379/0
-      - CELERY_BACKEND=redis://redis:6379/0
     depends_on:
       - django
       - redis
