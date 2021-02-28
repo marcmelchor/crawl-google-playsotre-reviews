@@ -20,7 +20,12 @@ This is an open source cronjob, where you can crawl reviews from a specific app 
 > - ``$ pip install -r requirements.txt``
 
 ### Setup Docker:
-> - ``$ docker-compose up --build``. I suggest to not run it in background, in order to see
+> - Build the images ``$ docker-compose build -d``
+> - Run migrations and migrate them
+>> - ``$ docker exec -it django bash``
+>> - ``$ python manage.py makemigrations``
+>> - ``$ python manage.py migrate``
+> - ``$ docker-compose up``. I suggest to not run it in background, in order to see
 the job queues.
 > - If you don't want to wait 1 hour for the next scheduled job. You can go to
 ``crawler/celery.py`` and in the line ``27``, you change ``hour='*/1'`` for ``minute='*/10'``

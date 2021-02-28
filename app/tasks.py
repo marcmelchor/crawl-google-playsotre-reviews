@@ -12,7 +12,7 @@ def import_app_info(app_id, **kwargs):
         country=kwargs.get('country', 'us'),
     )
 
-    App.save_app(response['appId'])
+    App.objects.save_app(response['appId'])
 
 
 @shared_task
@@ -31,7 +31,7 @@ def crawl_app_reviews(app_id, **kwargs):
         continuation_token=continuation_token,
     )
 
-    app_object = App.save_app(app_id)
+    app_object = App.objects.save_app(app_id)
     app_reviews = filter_new_reviews(app_reviews)
     save_app_reviews(app_reviews, app_object)
 
@@ -47,7 +47,7 @@ def crawl_all_app_reviews(app_id, **kwargs):
         filter_score_with=kwargs.get('score', 5),
     )
 
-    app_object = App.save_app(app_id)
+    app_object = App.objects.save_app(app_id)
     app_reviews = filter_new_reviews(app_reviews)
     save_app_reviews(app_reviews, app_object)
 
@@ -79,4 +79,4 @@ def save_app_reviews(app_reviews, app_object):
 
     App.objects.bulk_create(reviews_list)
 
-    print(f'{ len(reviews_list) } have been successfully saved.')
+    print(f'{len(reviews_list)} have been successfully saved.')
